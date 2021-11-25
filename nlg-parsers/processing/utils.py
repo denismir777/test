@@ -2,9 +2,9 @@ import requests
 import json
 from time import sleep
 from random import randint
-from torrequest import TorRequest
-from multiprocessing.pool import ThreadPool
-from torpy.http.requests import tor_requests_session
+# from torrequest import TorRequest
+# from multiprocessing.pool import ThreadPool
+# from torpy.http.requests import tor_requests_session
 from requests_tor import RequestsTor
 
 def simple_get_data():
@@ -38,12 +38,18 @@ def simple_get_data():
 #     with ThreadPool(3) as pool:
 #         pool.map(s.get, links)
 #         print(s.text)
-#
-rt = RequestsTor()
-rt.check_ip()
+# #
+# rt = RequestsTor()
+# rt.check_ip()
 
 # r = rt.post('https://pb.nalog.ru/search-proc.json', data={'mode': 'search-ul',
 #                                                                         'regionUl': '03',
 #                                                                         'page': '250',
 #                                                                         'pageSize': '100'})
 # print(r.text)
+
+rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, autochange_id=1)
+url = 'https://httpbin.org/anything'
+r = rt.get(url)
+rt.test()
+print(r.text)
