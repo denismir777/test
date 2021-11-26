@@ -27,7 +27,9 @@ with open('rerion_list.txt', mode='r') as f:
     region_list = f.read().split(',')
 
 
-rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password')
+rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password', autochange_id=6)
+
+
 regionUl = '20'
 url = 'https://pb.nalog.ru/search-proc.json'
 flag = True
@@ -71,11 +73,25 @@ for zone in region_list:
         print(r.text)
         jr = json.loads(r.text)
         print('JR DATA: ', jr)
-
+        cnt = 0
         for item in jr['ul']['data']:
+            print('CNT NUMBER IS  ====== ',  str(cnt))
             print('ITEM ', item, type(item))
-            get_request = get_company_details('get-request', item['token'], headers=headers)
-            company_details = get_company_details('get-response', get_request['token'], id=get_request['id'], headers=headers)
+            try:
+                get_request = get_company_details('get-request', item['token'], headers=headers)
+                company_details = get_company_details('get-response', get_request['token'], id=get_request['id'], headers=headers)
+            except Exception as e:
+                print(str(e) + "IP IS BANNED")
+                rt.new_id()
+                get_request = get_company_details('get-request', item['token'], headers=headers)
+                company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
+                                                      headers=headers)
+            if get_request.get('ERROR') or company_details.get('ERROR'):
+                print("THERE IS AN A CAPTCHA!!! so we have change identity/")
+                rt.new_id()
+                get_request = get_company_details('get-request', item['token'], headers=headers)
+                company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
+                                                      headers=headers)
             # try:
             Organization.objects.create(yearcode=item.get('yearcode'),
                                         periodcode=item.get('yearcode'),
@@ -90,6 +106,7 @@ for zone in region_list:
                                         token=item.get('token'),
                                         other_data=company_details,
             )
+            cnt += 1
             # except Exception as e:
             #     with open('error.log', mode='a') as f:
             #         f.write(str(e) + '\n')
