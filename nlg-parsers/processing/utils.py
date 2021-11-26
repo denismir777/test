@@ -31,10 +31,11 @@ regionUl = '20'
 url = 'https://pb.nalog.ru/search-proc.json'
 flag = True
 
-def get_company_details(token):
+def get_company_details(method, token, id=None):
     url = 'https://pb.nalog.ru/company-proc.json'
-    data = {'method': 'get-response',
-            'token': token}
+    data = {'method': method,
+            'token': token,
+            'id': id}
     print(data)
     r = rt.post(url=url, data=data)
     print(r.text)
@@ -57,24 +58,27 @@ for zone in region_list:
         print(r.text)
         jr = json.loads(r.text)
         print('JR DATA: ', jr)
+
         for item in jr['ul']['data']:
             print('ITEM ', item, type(item))
-            company_details = get_company_details(item['token'])
-            try:
-                Organization.objects.create(yearcode=item['yearcode'],
-                                            periodcode=item['yearcode'],
-                                            inn=item['inn'],
-                                            ogrn=company_details['ОГРН'],
-                                            regionname=item['regionname'],
-                                            namep=item['namep'],
-                                            namec=item['namec'],
-                                            invalid=item['invalid'],
-                                            okved2=item['okved2'],
-                                            okved2name=item['okved2name'],
-                                            token=item['token'],
-                )
-            except Exception as e:
-                with open('error.log', mode='a') as f:
-                    f.write(e + '\n')
+            get_request = get_company_details('get-request', item['token'])
+            company_details = get_company_details('get-response', get_request['token'], id=get_request['id'])
+            # try:
+            Organization.objects.create(yearcode=item.get('yearcode'),
+                                        periodcode=item.get('yearcode'),
+                                        inn=item.get('inn'),
+                                        ogrn=company_details['vyp']['ОГРН'],
+                                        regionname=item.get('regionname'),
+                                        namep=item.get('namep'),
+                                        namec=item.get('namec'),
+                                        invalid=item.get('invalid'),
+                                        okved2=item.get('okved2'),
+                                        okved2name=item.get('okved2name'),
+                                        token=item.get('token'),
+                                        other_data=company_details,
+            )
+            # except Exception as e:
+            #     with open('error.log', mode='a') as f:
+            #         f.write(str(e) + '\n')
         page += 1
         flag = jr['ul']['hasMore']

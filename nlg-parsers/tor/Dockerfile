@@ -1,6 +1,4 @@
 FROM ubuntu:latest
-# https://github.com/np1/docker-tor-clientonly
-# Based on https://github.com/patrickod/docker-tor
 
 ENV TORNAME tor-0.4.6.8
 RUN apt-get update
