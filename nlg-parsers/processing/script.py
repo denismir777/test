@@ -51,33 +51,34 @@ r = rt.post(url=url, data=data, headers=headers)
 
 jr = json.loads(r.text)
 
-for item in jr['ul']['data']:
-    try:
-        get_request = get_company_details('get-request', item['token'], headers=headers)
-        company_details = get_company_details('get-response', get_request['token'], id=get_request['id'], headers=headers)
-    except Exception as e:
-        print(str(e) + "IP IS BANNED")
-        rt.new_id()
-        get_request = get_company_details('get-request', item['token'], headers=headers)
-        company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
-                                              headers=headers)
-    if get_request.get('ERROR') or company_details.get('ERROR'):
-        print("THERE IS AN A CAPTCHA!!! so we have change identity/")
-        rt.new_id()
-        get_request = get_company_details('get-request', item['token'], headers=headers)
-        company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
-                                              headers=headers)
+def create_company(json_data):
+    for item in json_data['ul']['data']:
+        try:
+            get_request = get_company_details('get-request', item['token'], headers=headers)
+            company_details = get_company_details('get-response', get_request['token'], id=get_request['id'], headers=headers)
+        except Exception as e:
+            print(str(e) + "IP IS BANNED")
+            rt.new_id()
+            get_request = get_company_details('get-request', item['token'], headers=headers)
+            company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
+                                                  headers=headers)
+        if get_request.get('ERROR') or company_details.get('ERROR'):
+            print("THERE IS AN A CAPTCHA!!! so we have change identity/")
+            rt.new_id()
+            get_request = get_company_details('get-request', item['token'], headers=headers)
+            company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
+                                                  headers=headers)
 
-    Organization.objects.create(yearcode=item.get('yearcode'),
-                                periodcode=item.get('yearcode'),
-                                inn=item.get('inn'),
-                                ogrn=company_details['vyp']['ОГРН'],
-                                regionname=item.get('regionname'),
-                                namep=item.get('namep'),
-                                namec=item.get('namec'),
-                                invalid=item.get('invalid'),
-                                okved2=item.get('okved2'),
-                                okved2name=item.get('okved2name'),
-                                token=item.get('token'),
-                                other_data=company_details,
-    )
+        Organization.objects.create(yearcode=item.get('yearcode'),
+                                    periodcode=item.get('yearcode'),
+                                    inn=item.get('inn'),
+                                    ogrn=company_details['vyp']['ОГРН'],
+                                    regionname=item.get('regionname'),
+                                    namep=item.get('namep'),
+                                    namec=item.get('namec'),
+                                    invalid=item.get('invalid'),
+                                    okved2=item.get('okved2'),
+                                    okved2name=item.get('okved2name'),
+                                    token=item.get('token'),
+                                    other_data=company_details,
+        )

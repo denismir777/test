@@ -1,8 +1,10 @@
-import requests
 import json
 from time import sleep
 from random import randint
 import os
+
+import celery
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 import django
 django.setup()
@@ -11,24 +13,14 @@ from processing.models import Organization
 import uuid
 from random import randint as ri
 from celery import chord
-
-def simple_get_data():
-    for i in range(1, 100):
-        r = requests.post('https://pb.nalog.ru/search-proc.json', data={'mode': 'search-ul',
-                                                                        'regionUl': '03',
-                                                                        'page': i,
-                                                                        'pageSize': '100'})
-        print(r.text)
-        jr = json.loads(r.text)
-        print(jr)
-        sleep(randint(6, 15))
-
+from celery import Celery
+from celery import group
 
 with open('rerion_list.txt', mode='r') as f:
     region_list = f.read().split(',')
 
 
-rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password', autochange_id=6)
+rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password', autochange_id=24)
 
 
 regionUl = '20'
@@ -60,10 +52,13 @@ def get_company_details(method, token, headers, id=None):
     return j_company_details
 
 region_list = ['77']
+zone = '77'
 
 
-for zone in region_list:
-    page = 1
+def create_organization(page):
+    page = page
+    print(f'PAGE ======== {page}')
+    flag = True
     while flag:
         headers = get_heders(headers_list)
         data = {'mode': 'search-ul',
@@ -111,3 +106,7 @@ for zone in region_list:
         page += 1
         if jr['ul']['hasMore'] == 'false':
             flag = False
+            return 'Parsing completed!'
+
+res = group(create_organization(i) for i in range(1, 3))()
+res.get()
