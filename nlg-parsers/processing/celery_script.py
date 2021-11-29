@@ -15,12 +15,13 @@ from random import randint as ri
 from celery import chord
 from celery import Celery
 from celery import group
+from multiprocessing import Pool
 
 with open('rerion_list.txt', mode='r') as f:
     region_list = f.read().split(',')
 
 
-rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password', autochange_id=24)
+rt = RequestsTor(tor_ports=(9050,), tor_cport=9051, password='password')
 
 
 regionUl = '20'
@@ -38,7 +39,7 @@ headers_list = ['Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleW
 
 
 def get_heders(headers_list):
-    headers = {"User-Agent": headers_list[ri(0, len(headers_list))]}
+    headers = {"User-Agent": headers_list[ri(0, 7)]}
     return headers
 
 def get_company_details(method, token, headers, id=None):
@@ -46,7 +47,6 @@ def get_company_details(method, token, headers, id=None):
     data = {'method': method,
             'token': token,
             'id': id}
-    print(data)
     r = rt.post(url=url, data=data, headers=headers)
     j_company_details = json.loads(r.text)
     return j_company_details
@@ -65,10 +65,14 @@ def create_organization(page):
                 'regionUl': zone,
                 'page': page,
                 'pageSize': '100'}
-        r = rt.post(url=url, data=data, headers=headers)
-        print(r.text)
-        jr = json.loads(r.text)
-        print('JR DATA: ', jr)
+        try:
+            r = rt.post(url=url, data=data, headers=headers)
+            jr = json.loads(r.text)
+        except Exception as e:
+            print("IP BANNED IN MAIN REQEST, CHANGING ID ", str(e))
+            rt.new_id()
+            r = rt.post(url=url, data=data, headers=headers)
+            jr = json.loads(r.text)
         cnt = 0
         for item in jr['ul']['data']:
             print('CNT NUMBER IS  ====== ',  str(cnt))
@@ -82,12 +86,13 @@ def create_organization(page):
                 get_request = get_company_details('get-request', item['token'], headers=headers)
                 company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
                                                       headers=headers)
-            if get_request.get('ERROR') or company_details.get('ERROR'):
+            if get_request or (get_request.get('ERROR') or company_details.get('ERROR')):
                 print("THERE IS AN A CAPTCHA!!! so we have change identity/")
                 rt.new_id()
                 get_request = get_company_details('get-request', item['token'], headers=headers)
                 company_details = get_company_details('get-response', get_request['token'], id=get_request['id'],
                                                       headers=headers)
+
             # try:
             Organization.objects.create(yearcode=item.get('yearcode'),
                                         periodcode=item.get('yearcode'),
@@ -108,5 +113,5 @@ def create_organization(page):
             flag = False
             return 'Parsing completed!'
 
-res = group(create_organization(i) for i in range(1, 3))()
-res.get()
+pool = Pool()
+pool.map(create_organization, [x for x in range(1,4)])

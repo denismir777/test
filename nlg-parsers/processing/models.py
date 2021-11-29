@@ -42,9 +42,11 @@ class Organization(models.Model):
     tax_dept_name_main = models.CharField(max_length=1000, blank=True, null=True)
     ul_reg_method = models.CharField(max_length=1000, blank=True, null=True)
     ul_street = models.CharField(max_length=1000, blank=True, null=True)
-    # ul_full_name: "\"АССОЦИАЦИЯ НАУЧНЫХ И УЧЕБНЫХ ОРГАНИЗАЦИЙ - ПОЛЬЗОВАТЕЛЕЙ ЭЛЕКТРОННЫХ СЕТЕЙ ПЕРЕДАЧИ ДАННЫХ \"РЕЛАРН\""
-    # ul_short_name: "АССОЦИАЦИЯ \"РЕЛАРН\""
     ogrn = models.CharField(max_length=1000, blank=True, null=True)
     region_type = models.CharField(max_length=1000, blank=True, null=True)
     street_type = models.CharField(max_length=1000, blank=True, null=True)
     other_data = models.JSONField(blank=True, default=None, null=True)
+
+
+    def __str__(self):
+        return self.namec
