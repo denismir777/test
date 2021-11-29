@@ -226,3 +226,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /pyvenv.cfg
+/nlg-parsers/processing/data.json
+/nlg-parsers/django
