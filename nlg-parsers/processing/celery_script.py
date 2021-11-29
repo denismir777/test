@@ -114,4 +114,4 @@ def create_organization(page):
             return 'Parsing completed!'
 
 pool = Pool()
-pool.map(create_organization, [x for x in range(1,4)])
+pool.map(create_organization, [x for x in range(1, 4)])
