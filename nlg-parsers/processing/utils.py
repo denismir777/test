@@ -8,9 +8,7 @@ import django
 django.setup()
 from requests_tor import RequestsTor
 from processing.models import Organization
-import uuid
 from random import randint as ri
-from celery import chord
 
 def simple_get_data():
     for i in range(1, 100):
