@@ -50,3 +50,40 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.namec
+
+import os
+import socket
+
+class Broker(models.Model):
+    containers_count = models.IntegerField()
+    current_region = models.CharField(max_length=10)
+
+
+class Container(models.Model):
+    # name = models.CharField(blank=False, max_length=40)
+    port = models.IntegerField(blank=False, unique=True)
+    cport = models.IntegerField(blank=False, unique=True)
+    is_busy = models.BooleanField(default=False)
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+
+    def run(self):
+        pass
+
+    def get_port(self, port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('localhost', port)) == 0
+
+    def save(self, *args, **kwargs):
+
+        super(Container, self).save(*args, **kwargs)
+
+class Region(models.Model):
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+    region_index = models.CharField(max_length=2, blank=False)
+    has_more = models.BooleanField(default=True)
+    parsed = models.BooleanField(default=False)
+
+
+class PortInUse(models.Model):
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+    port = models.IntegerField()
